@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS uspto.USCPC_C (
 
 3) Shell(windows, however could be run in linux/UNIX-like system)):
 ```shell
-psql -U <username> -d <databasename> -f installation/uspto_create_database_postgresql.sql
+psql -U <username> -d <databasename> -f installation/uspto_create_database_postgresql_mod.sql
 ```
 
 ```shell
