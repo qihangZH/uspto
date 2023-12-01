@@ -16,6 +16,46 @@ You should have received a copy of the GNU General Public License along with thi
 
 **Github Repository:** https://github.com/rippledj/uspto
 
+## **MODIFY BY QIHANG**
+National University of Singapore, Business School
+email: e0952154@u.nus.edu
+
+1) debug: the uscpc_c table duplications: USClass sometimes not one-to-one with CPCClass
+
+```postgresql
+CREATE TABLE IF NOT EXISTS uspto.USCPC_C (
+  USClass VARCHAR(15) NOT NULL,
+  CPCClass VARCHAR(15) DEFAULT NULL,
+  Position INT NOT NULL,
+  FileName VARCHAR(45) NOT NULL);
+--   FileName VARCHAR(45) NOT NULL,
+--   PRIMARY KEY (USClass, Position, FileName));
+```
+
+2) update WARNING, the PatEx should be update to 2022 version: 
+
+```python
+    args_array = {
+        "bulk_data_source" : "uspto", # uspto or reedtech (no longer available)
+        "uspto_bulk_data_url" : 'https://bulkdata.uspto.gov/',
+        "reedtech_bulk_data_url" : "https://patents.reedtech.com/",
+        "uspto_classification_data_url" : 'https://www.uspto.gov/web/patents/classification/selectnumwithtitle.htm',
+        # "uspto_PAIR_data_url" : "https://bulkdata.uspto.gov/data/patent/pair/economics/2019/",
+        "uspto_PAIR_data_url": "https://bulkdata.uspto.gov/data/patent/pair/economics/2022/",
+        ...
+}
+```
+
+3) Shell(windows, however could be run in linux/UNIX-like system)):
+```shell
+psql -U <username> -d <databasename> -f installation/uspto_create_database_postgresql.sql
+```
+
+```shell
+# sandbox is always recommend for the code is not stable, meanwhile do not use too much processes
+python USPTOParser.py -csv -database -t 8 -full -balance -sandbox
+```
+
 ## **Description:**
 This python script is based on a project from University of Illinois (http://abel.lis.illinois.edu/UPDC/Downloads.html). Several parts of the script have been improved to increase the data integrity and performance of the original script.  The script has been tested with Python 3.6.  It should work with Python 3.6 through 3.8, but will not work with any versions of Python 2 or Python 3.9 or higher.
 
