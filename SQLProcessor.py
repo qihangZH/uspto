@@ -144,7 +144,7 @@ class SQLProcess:
 
                     try:
                         sql = "COPY " + self._dbname + "." + csv_file_obj['table_name'] + " FROM STDIN DELIMITER '|' CSV HEADER"
-                        self._cursor.copy_expert(sql, open(csv_file_obj['csv_file_name'], "r"))
+                        self._cursor.copy_expert(sql, open(csv_file_obj['csv_file_name'], "r", errors='backslashreplace'))
                         # Return a successfull insertion flag
                         bulk_insert_successful = True
 
