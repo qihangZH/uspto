@@ -20,6 +20,7 @@ import USPTOSanitizer
 import MySQLdb
 import psycopg2
 
+import pandas as pd
 class SQLProcess:
 
     # TODO: write the script to accept a database password from stdin
@@ -143,6 +144,21 @@ class SQLProcess:
                 while bulk_insert_successful == False:
 
                     try:
+
+                        # ------------------------------------------------------------------------------------
+                        """add the special dealings to special csv files(remove na, remove duplicates, etc)"""
+
+                        if 'CONTINUITY' in self._dbname:
+                            # PAIRS series
+                            pd.read_csv(csv_file_obj['table_name'], sep='|',
+                                        encoding='utf-8'
+                                        ).dropna(subset=['ApplicationID', 'ParentApplicationID', 'FileName']
+                                                 ).drop_duplicates().to_csv(
+                                csv_file_obj['table_name'], sep='|', index=False, encoding='utf-8')
+
+                        # ------------------------------------------------------------------------------------
+
+
                         sql = "COPY " + self._dbname + "." + csv_file_obj['table_name'] + " FROM STDIN DELIMITER '|' CSV HEADER"
                         self._cursor.copy_expert(sql, open(csv_file_obj['csv_file_name'], "r", errors='backslashreplace'))
                         # Return a successfull insertion flag

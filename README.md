@@ -46,7 +46,48 @@ CREATE TABLE IF NOT EXISTS uspto.USCPC_C (
 }
 ```
 
-3) Shell(windows, however could be run in linux/UNIX-like system)):
+4) ProcessZipfile update, more flexible:
+```python
+def extract_xml_file_from_zip(args_array):
+
+    logger = USPTOLogger.logging.getLogger("USPTO_Database_Construction")
+
+    # Extract the zipfile to read it
+    try:
+        zip_file = zipfile.ZipFile(args_array['temp_zip_file_name'], 'r')
+        # Find the xml file from the extracted filenames
+        for filename in zip_file.namelist():
+            # --------------------------------------------------------
+            # if '.xml' in filename or '.sgml' in filename:
+            if filename.lower().endswith('.xml') or filename.lower().endswith('.sgml'):
+                xml_file_name = filename
+            # new version: make it more flexible----------------------
+                ...
+```
+
+5) SQLprocessor.py update, more flexible:
+```python
+while bulk_insert_successful == False:
+
+    try:
+
+        # ------------------------------------------------------------------------------------
+        """add the special dealings to special csv files(remove na, remove duplicates, etc)"""
+
+        if 'CONTINUITY' in self._dbname:
+            # PAIRS series
+            pd.read_csv(csv_file_obj['table_name'], sep='|',
+                        encoding='utf-8'
+                        ).dropna(subset=['ApplicationID', 'ParentApplicationID', 'FileName']
+                                 ).drop_duplicates().to_csv(
+                csv_file_obj['table_name'], sep='|', index=False, encoding='utf-8')
+
+        # ------------------------------------------------------------------------------------
+        ...
+
+```
+
+6) Shell(windows, however could be run in linux/UNIX-like system)):
 ```shell
 psql -U <username> -d <databasename> -f installation/uspto_create_database_postgresql_mod.sql
 ```
