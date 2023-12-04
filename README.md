@@ -20,7 +20,8 @@ You should have received a copy of the GNU General Public License along with thi
 National University of Singapore, Business School
 email: e0952154@u.nus.edu
 
-1) debug: the uscpc_c table duplications: USClass sometimes not one-to-one with CPCClass
+1) debug: the uscpc_c table duplications: USClass sometimes not one-to-one with CPCClass. Also
+other tables.
 
 ```postgresql
 CREATE TABLE IF NOT EXISTS uspto.USCPC_C (
@@ -30,6 +31,80 @@ CREATE TABLE IF NOT EXISTS uspto.USCPC_C (
   FileName VARCHAR(45) NOT NULL);
 --   FileName VARCHAR(45) NOT NULL,
 --   PRIMARY KEY (USClass, Position, FileName));
+```
+
+```postgresql
+CREATE TABLE IF NOT EXISTS uspto.CORRESPONDENCE_P (
+  ApplicationID VARCHAR(20) NOT NULL,
+  Name_1 VARCHAR(100) DEFAULT NULL,
+  Name_2 VARCHAR(100) DEFAULT NULL,
+  Address TEXT DEFAULT NULL,
+--   City VARCHAR(50) DEFAULT NULL,
+--   RegionCode VARCHAR(50) DEFAULT NULL,
+--   RegionName VARCHAR(50) DEFAULT NULL,
+--   PostalCode VARCHAR(20) DEFAULT NULL,
+--   CountryCode VARCHAR(5) DEFAULT NULL,
+--   CountryName VARCHAR(50) DEFAULT NULL,
+--   CustomerNum VARCHAR(45) DEFAULT NULL,
+--   FileName VARCHAR(45) NOT NULL,
+  City VARCHAR DEFAULT NULL,
+  RegionCode VARCHAR DEFAULT NULL,
+  RegionName VARCHAR DEFAULT NULL,
+  PostalCode VARCHAR(20) DEFAULT NULL,
+  CountryCode VARCHAR(5) DEFAULT NULL,
+  CountryName VARCHAR(50) DEFAULT NULL,
+  CustomerNum VARCHAR(45) DEFAULT NULL,
+  FileName VARCHAR(45) NOT NULL,
+  PRIMARY KEY (ApplicationID, FileName));
+```
+
+```postgresql
+-- -----------------------------------------------------
+-- Table uspto.ATTORNEY_L
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS uspto.ATTORNEY_L (
+  CaseID VARCHAR(15) NOT NULL,
+  CaseIDRaw VARCHAR(50) DEFAULT NULL,
+  PartyType VARCHAR(50) DEFAULT NULL,
+  -- Name VARCHAR(100) NOT NULL,
+  Name VARCHAR(100) DEFAULT NULL,
+  ContactInfo TEXT DEFAULT NULL,
+  Position VARCHAR(200) DEFAULT NULL,
+  FileName VARCHAR(45) DEFAULT NULL);
+
+-- -----------------------------------------------------
+-- Table uspto.PARTY_L
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS uspto.PARTY_L (
+  CaseID VARCHAR(15) NOT NULL,
+  -- PartyType VARCHAR(50) NOT NULL,
+  -- Name VARCHAR(1000) NOT NULL,
+  -- FileName VARCHAR(45) NOT NULL
+  PartyType VARCHAR(50) DEFAULT NULL,
+  Name VARCHAR(1000) DEFAULT NULL,
+  FileName VARCHAR(45) DEFAULT NULL
+  );
+
+-- -----------------------------------------------------
+-- Table uspto.PATENT_L
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS uspto.PATENT_L (
+  CaseID VARCHAR(15) NOT NULL,
+  -- PacerID VARCHAR(10) NOT NULL,
+  -- NOS VARCHAR(10) DEFAULT NULL,
+  -- PatentID VARCHAR(20) NOT NULL,
+  -- PatentDocType VARCHAR(30) DEFAULT NULL,
+  -- FileName VARCHAR(45) NOT NULL
+  PacerID VARCHAR(10) DEFAULT NULL,
+  NOS VARCHAR(10) DEFAULT NULL,
+  PatentID VARCHAR(20) DEFAULT NULL,
+  PatentDocType VARCHAR(30) DEFAULT NULL,
+  FileName VARCHAR(45) DEFAULT NULL
+  );
+
 ```
 
 2) update WARNING, the PatEx should be update to 2022 version: 
@@ -74,20 +149,46 @@ while bulk_insert_successful == False:
         # ------------------------------------------------------------------------------------
         """add the special dealings to special csv files(remove na, remove duplicates, etc)"""
 
-        if 'CONTINUITY' in self._dbname:
+        # TODO: if old version use error_bad_lines instead(old version)
+        if 'continuity' in csv_file_obj['table_name'].lower():
             # PAIRS series
-            pd.read_csv(csv_file_obj['table_name'], sep='|',
-                        encoding='utf-8'
+            pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
+                        encoding='utf-8', engine='c', low_memory=False, on_bad_lines='skip'
                         ).dropna(subset=['ApplicationID', 'ParentApplicationID', 'FileName']
                                  ).drop_duplicates().to_csv(
-                csv_file_obj['table_name'], sep='|', index=False, encoding='utf-8')
+                csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
 
-        # ------------------------------------------------------------------------------------
+            if 'parent' in csv_file_obj['table_name'].lower():
+                pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
+                            encoding='utf-8', engine='c', on_bad_lines='skip', low_memory=False
+                            ).drop_duplicates(
+                    subset=['ApplicationID', 'ParentApplicationID', 'ContinuationType', 'FileName']
+                    ).to_csv(
+                    csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
+
+        elif 'correspondence_address' in csv_file_obj['table_name'].lower():
+
+            pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
+                        encoding='utf-8', engine='c', on_bad_lines='skip', low_memory=False
+                        ).dropna().drop_duplicates().to_csv(
+                csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
+
+
         ...
-
 ```
 
-6) Shell(windows, however could be run in linux/UNIX-like system)):
+6) USPTOProcessPAIRData.py update, more flexible:
+```python
+    # -----------debug for correspondance_address.csv
+    # special for correspondence_address
+    if 'correspondence_address' in csv_file_name:
+        input_file = open(csv_file_name, "r", errors='backslashreplace')
+    else:
+        input_file = open(csv_file_name, "r")
+    # input_file = open(csv_file_name, "r")
+```
+
+7) Shell(windows, however could be run in linux/UNIX-like system)):
 ```shell
 psql -U <username> -d <databasename> -f installation/uspto_create_database_postgresql_mod.sql
 ```
@@ -96,6 +197,9 @@ psql -U <username> -d <databasename> -f installation/uspto_create_database_postg
 # sandbox is always recommend for the code is not stable, meanwhile do not use too much processes
 python USPTOParser.py -csv -database -t 8 -full -balance -sandbox
 ```
+
+8) 2001 version of USPTO patent bulk text(full) have some problem. It have SGM/XML
+version. However, only XML version is downloadable. So just ignore the SGM version.
 
 ## **Description:**
 This python script is based on a project from University of Illinois (http://abel.lis.illinois.edu/UPDC/Downloads.html). Several parts of the script have been improved to increase the data integrity and performance of the original script.  The script has been tested with Python 3.6.  It should work with Python 3.6 through 3.8, but will not work with any versions of Python 2 or Python 3.9 or higher.

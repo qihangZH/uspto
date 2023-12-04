@@ -148,13 +148,29 @@ class SQLProcess:
                         # ------------------------------------------------------------------------------------
                         """add the special dealings to special csv files(remove na, remove duplicates, etc)"""
 
-                        if 'CONTINUITY' in self._dbname:
+                        # TODO: if old version use error_bad_lines instead(old version)
+                        if 'continuity' in csv_file_obj['table_name'].lower():
                             # PAIRS series
-                            pd.read_csv(csv_file_obj['table_name'], sep='|',
-                                        encoding='utf-8'
+                            pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
+                                        encoding='utf-8', engine='c', low_memory=False, on_bad_lines='skip'
                                         ).dropna(subset=['ApplicationID', 'ParentApplicationID', 'FileName']
                                                  ).drop_duplicates().to_csv(
-                                csv_file_obj['table_name'], sep='|', index=False, encoding='utf-8')
+                                csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
+
+                            if 'parent' in csv_file_obj['table_name'].lower():
+                                pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
+                                            encoding='utf-8', engine='c', on_bad_lines='skip', low_memory=False
+                                            ).drop_duplicates(
+                                    subset=['ApplicationID', 'ParentApplicationID', 'ContinuationType', 'FileName']
+                                    ).to_csv(
+                                    csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
+
+                        elif 'correspondence_address' in csv_file_obj['table_name'].lower():
+
+                            pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
+                                        encoding='utf-8', engine='c', on_bad_lines='skip', low_memory=False
+                                        ).dropna().drop_duplicates().to_csv(
+                                csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
 
                         # ------------------------------------------------------------------------------------
 
