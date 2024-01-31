@@ -201,6 +201,13 @@ python USPTOParser.py -csv -database -t 8 -full -balance -sandbox
 8) 2001 version of USPTO patent bulk text(full) have some problem. It have SGM/XML
 version. However, only XML version is downloadable. So just ignore the SGM version.
 
+9) AddOn_grant_application_fulltexture_extraction.py: This file
+if used to extract the full texture of the patent. However, it is
+not stable. It will make a new schema. It also need some dependency packages
+MAY NOT WORK IN python3.6, like pathos, which could work in python 3.8+.
+The dependency packages are not listed in the requirements.txt. 
+you could make a new venv to run this file AFTER ALL THE DATA ARE DOWNLOADED.
+
 ## **Description:**
 This python script is based on a project from University of Illinois (http://abel.lis.illinois.edu/UPDC/Downloads.html). Several parts of the script have been improved to increase the data integrity and performance of the original script.  The script has been tested with Python 3.6.  It should work with Python 3.6 through 3.8, but will not work with any versions of Python 2 or Python 3.9 or higher.
 
