@@ -556,7 +556,9 @@ if __name__ == "__main__":
         lambda x:  os.path.basename(x).split('.')[0]
         )
         
+        # ----------------------------------------------------------------------
         """TODO: gAPS has not been dealed in this version"""
+        # ----------------------------------------------------------------------
         typ_df_dict[typ] = typ_df_dict[typ][
             (typ_df_dict[typ]['type'] != 'gAPS') &
             (typ_df_dict[typ]['status'] == 'Processed')

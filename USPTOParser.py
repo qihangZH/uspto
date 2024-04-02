@@ -374,7 +374,9 @@ def load_balancer_thread(link_queue, args_array):
         # Sleep the balancer for 5 minutes to allow initial threads and CPU load to balance
         time.sleep(300)
         # Check the 5 minute average CPU load balance
-        five_minute_load_average = os.getloadavg()[1] / core_count
+        # five_minute_load_average = os.getloadavg()[1] / core_count
+        five_minute_load_average = psutil.getloadavg()[1] / core_count
+        
 
         # Check if CPU load is set to be balanced
         if "balance" in args_array['command_args']:

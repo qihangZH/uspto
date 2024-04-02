@@ -30,12 +30,9 @@ def extract_xml_file_from_zip(args_array):
         zip_file = zipfile.ZipFile(args_array['temp_zip_file_name'], 'r')
         # Find the xml file from the extracted filenames
         for filename in zip_file.namelist():
-            # --------------------------------------------------------
             # if '.xml' in filename or '.sgml' in filename:
             if filename.lower().endswith('.xml') or filename.lower().endswith('.sgml'):
                 xml_file_name = filename
-            # new version: make it more flexible----------------------
-
         # Print stdout message that xml file was found
         print('[xml file found. Filename: {0}]'.format(xml_file_name))
         logger.info('xml file found. Filename: ' + xml_file_name)

@@ -21,6 +21,7 @@ import MySQLdb
 import psycopg2
 
 import pandas as pd
+
 class SQLProcess:
 
     # TODO: write the script to accept a database password from stdin
@@ -144,37 +145,38 @@ class SQLProcess:
                 while bulk_insert_successful == False:
 
                     try:
-
+                        
                         # ------------------------------------------------------------------------------------
                         """add the special dealings to special csv files(remove na, remove duplicates, etc)"""
 
-                        # TODO: if old version use error_bad_lines instead(old version)
                         if 'continuity' in csv_file_obj['table_name'].lower():
                             # PAIRS series
+
+                            
                             pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
-                                        encoding='utf-8', engine='c', low_memory=False, on_bad_lines='skip'
-                                        ).dropna(subset=['ApplicationID', 'ParentApplicationID', 'FileName']
-                                                 ).drop_duplicates().to_csv(
+                                        encoding='utf-8', engine='c', error_bad_lines ='skip', low_memory=False
+                                        ).dropna(subset=['ApplicationID', 'ParentApplicationID', 'FileName'],
+                                                 how='any'
+                                                ).drop_duplicates().to_csv(
                                 csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
 
+                            # more work for parents
                             if 'parent' in csv_file_obj['table_name'].lower():
                                 pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
-                                            encoding='utf-8', engine='c', on_bad_lines='skip', low_memory=False
-                                            ).drop_duplicates(
-                                    subset=['ApplicationID', 'ParentApplicationID', 'ContinuationType', 'FileName']
-                                    ).to_csv(
-                                    csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
-
+                                        encoding='utf-8', engine='c', error_bad_lines='skip', low_memory=False
+                                         ).drop_duplicates(subset=['ApplicationID', 'ParentApplicationID', 'ContinuationType', 'FileName']
+                                                    ).to_csv(
+                                csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
+                                                    
                         elif 'correspondence_address' in csv_file_obj['table_name'].lower():
-
+                            
                             pd.read_csv(csv_file_obj['csv_file_name'], delimiter='|',
-                                        encoding='utf-8', engine='c', on_bad_lines='skip', low_memory=False
+                                        encoding='utf-8', engine='c', error_bad_lines ='skip', low_memory=False
                                         ).dropna().drop_duplicates().to_csv(
                                 csv_file_obj['csv_file_name'], sep='|', index=False, encoding='utf-8')
-
                         # ------------------------------------------------------------------------------------
-
-
+                        
+                        
                         sql = "COPY " + self._dbname + "." + csv_file_obj['table_name'] + " FROM STDIN DELIMITER '|' CSV HEADER"
                         self._cursor.copy_expert(sql, open(csv_file_obj['csv_file_name'], "r", errors='backslashreplace'))
                         # Return a successfull insertion flag

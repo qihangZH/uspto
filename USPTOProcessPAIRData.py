@@ -53,14 +53,13 @@ def process_PAIR_content(args_array):
     clean_csv_file_name = csv_file_name + ".tmp"
     already = set()
     output_file = open(clean_csv_file_name, "w")
-
-    # -----------debug for correspondance_address.csv
+    
     # special for correspondence_address
     if 'correspondence_address' in csv_file_name:
-        input_file = open(csv_file_name, "r", errors='backslashreplace')
+        input_file = open(csv_file_name, "r", errors='ignore')
     else:
         input_file = open(csv_file_name, "r")
-    # input_file = open(csv_file_name, "r")
+        
     for line in input_file:
         if line not in already:
             output_file.write(line)
